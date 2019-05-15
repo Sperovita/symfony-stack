@@ -1,0 +1,36 @@
+version: '3.7'
+
+services:
+  db:
+    image: mysql:5.7
+    networks:
+      - backend
+    volumes:
+      - db:/var/lib/mysql
+    labels:
+      - "traefik.enable=false"
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
+  omnidb:
+    build:
+      context: https://github.com/Sperovita/omnidb.git
+    restart: unless-stopped
+    networks:
+      - backend
+      - frontend
+    labels:
+      - "traefik.docker.network=traefik_webgateway"
+      - "traefik.frontend.rule=Host:${OMNIDB_HOST_NAME}"
+volumes:
+  db: {}
+
+networks:
+  backend:
+    driver: bridge
+  frontend:
+    external:
+      name: traefik_webgateway
